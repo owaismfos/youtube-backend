@@ -37,7 +37,7 @@ class UserView(APIView):
             return Response(apiError(400, "This username already exist"),
                             status = status.HTTP_400_BAD_REQUEST)
         
-        res = uploadOnCloudinry(data.get('avatar'), 'user_avatar')
+        res = uploadOnCloudinry(data.get('avatar'), os.getenv('USER_AVATAR'))
         # print(res)
         if res is None:
             return Response(apiError(500,

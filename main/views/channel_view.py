@@ -9,6 +9,8 @@ from main.utils.api_response import apiResponse
 from main.utils.api_error import apiError
 from main.utils.cloudinary import uploadOnCloudinry
 
+import os
+
 class ChannelView(APIView):
     def post(self, request):
         print(request.data)
@@ -26,7 +28,7 @@ class ChannelView(APIView):
         channelAvatar = request.data.get('channelAvatar')
         print("Channel Avatar: ", type(channelAvatar))
         if channelAvatar is not None:
-            avatarResponse = uploadOnCloudinry(channelAvatar, 'channel_avatar')
+            avatarResponse = uploadOnCloudinry(channelAvatar, os.getenv('CHANNEL_AVATAR'))
             if avatarResponse is None:
                 return Response(apiError(500, 'internal server error for uploading avatar'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             data['channelAvatarUrl'] = avatarResponse.get('url')
@@ -35,7 +37,7 @@ class ChannelView(APIView):
         channelBackground = request.data.get('channelBackground')
         print("Channel Background Image: ", channelBackground)
         if channelBackground is not None:
-            backgroundResponse = uploadOnCloudinry(channelBackground, 'channel_background')
+            backgroundResponse = uploadOnCloudinry(channelBackground, os.getenv('CHANNEL_BACKGROUND'))
             if backgroundResponse is None:
                 return Response(apiError(500, 'internal server error for uploading background image'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             data['channelBackgroundUrl'] = backgroundResponse.get('url')

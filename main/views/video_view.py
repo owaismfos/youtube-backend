@@ -11,6 +11,8 @@ from main.utils.cloudinary import uploadOnCloudinry, deleteFromCloudinry
 from main.utils.api_response import apiResponse
 from main.utils.api_error import apiError
 
+import os
+
 
 class VideoView(APIView):
     
@@ -32,13 +34,13 @@ class VideoView(APIView):
         print(request.data.get('description'))
         
         print(video)
-        videoResponse = uploadOnCloudinry(video, 'videos_upload')
+        videoResponse = uploadOnCloudinry(video, os.getenv('VIDEO_FILE'))
         print("Video Response: ", videoResponse)
         if videoResponse is None:
             print("This is video response error")
             return Response(apiError(500, 'internal server error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        thumbnailResponse = uploadOnCloudinry(thumbnail, 'thumbnail_upload')
+        thumbnailResponse = uploadOnCloudinry(thumbnail, os.getenv('VIDEO_THUMBNAIL'))
         print("Thumbnail Response: ", thumbnailResponse)
         if thumbnailResponse is None:
             print('this is thumbnail response error')
