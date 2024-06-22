@@ -9,11 +9,10 @@ ist_timezone = pytz.timezone('Asia/Kolkata')
 
 
 class Video(models.Model):
-    _id = models.CharField(
+    _id = models.UUIDField(
         primary_key = True, 
-        default = uuid.uuid4().hex, 
+        default = uuid.uuid4(), 
         editable = False,
-        max_length = 32
         )
     
     title = models.CharField(max_length=100)

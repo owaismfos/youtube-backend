@@ -49,6 +49,14 @@ class UserView(APIView):
         user = User.create_user(data)
         print("User: ", user)
         # print(user.to_dict())
+        if user is None:
+            deleteFromCloudinry(res.get('public_id'))
+            return Response(apiError(500,
+                                     "internal server error to create user"), 
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        user.password =  make_password(data.get('password'))
+        user.save()
         return Response(apiResponse(201, 
                                     "create succesfully", 
                                     user.to_dict()), 
