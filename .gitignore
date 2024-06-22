@@ -9,7 +9,7 @@ media
 
 node_modules/
 
-**/migrations/*
+*/migrations/*
 
 venv/
 

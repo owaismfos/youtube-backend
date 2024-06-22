@@ -7,11 +7,10 @@ import datetime
 
 
 class Channel(models.Model):
-    _id = models.CharField(
+    _id = models.UUIDField(
         primary_key = True, 
-        default = uuid.uuid4().hex, 
+        default = uuid.uuid4(), 
         editable = False,
-        max_length = 32
         )
     
     channelName = models.CharField(
