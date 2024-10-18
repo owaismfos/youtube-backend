@@ -48,7 +48,7 @@ class VideoView(APIView):
             return Response(apiError(500, 'internal server error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         print("Declare the data variables")
-        channel = Channel.getChannelOfUserId(request.user._id)
+        channel = Channel.getChannelOfUserId(request.user.id)
         data = {
             'title': request.data.get('title'),
             'description': request.data.get('description'),
@@ -57,8 +57,8 @@ class VideoView(APIView):
             'thumbnail_url': thumbnailResponse.get('url'),
             'thumbnail_id': thumbnailResponse.get('public_id'),
             'duration': videoResponse.get('duration'),
-            'userId': request.user._id,
-            'channelId': channel._id
+            'userId': request.user.id,
+            'channelId': channel.id
         }
         
         videoObject = Video.createVideo(data)

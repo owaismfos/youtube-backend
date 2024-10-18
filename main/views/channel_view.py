@@ -14,10 +14,10 @@ import os
 class ChannelView(APIView):
     def post(self, request):
         print(request.data)
-        if Channel.isChannelExistOfUser(request.user._id) is True:
+        if Channel.isChannelExistOfUser(request.user.id) is True:
             return Response(apiError(400, "channel exist with this user"), status=400)
         data = {
-            'userId' : request.user._id,
+            'userId' : request.user.id,
             'channelName' : request.data.get('channelName'),
             'channelDescription' : request.data.get('channelDescription'),
             'channelAvatarUrl' : None,
@@ -52,18 +52,18 @@ class ChannelView(APIView):
 class GetChannelDetails(APIView):
     def get(self, request, channelId=None):
         print("Channel ID: ", channelId)
-        print("User ID: ", request.user._id)
+        print("User ID: ", request.user.id)
         if channelId is None:
-            # if Channel.isChannelExistOfUser(request.user._id) is False:
+            # if Channel.isChannelExistOfUser(request.user.id) is False:
             #     return Response(apiError(400, "channel not exist with this user"), status=400)
 
-            channel = Channel.getChannelOfUserId(request.user._id)
+            channel = Channel.getChannelOfUserId(request.user.id)
             print(channel)
             if channel is None:
                 return Response(apiError(400, "channel not exist with this user"), status=404)
 
             channel = channel.to_dict()
-            if (channel['user']['userId'] == request.user._id):
+            if (channel['user']['userId'] == request.user.id):
                 channel['currentUser'] = True
             else:
                 channel['currentUser'] = False
@@ -74,7 +74,7 @@ class GetChannelDetails(APIView):
             if channel is None:
                 return Response(apiError(400, "channel not exist"), status=400)
             channel = channel.to_dict()
-            if (channel['user']['userId'] == request.user._id):
+            if (channel['user']['userId'] == request.user.id):
                 channel['currentUser'] = True
             else:
                 channel['currentUser'] = False
@@ -83,7 +83,7 @@ class GetChannelDetails(APIView):
     
 class UploadBackgroundImage(APIView):
     def post(self, request):
-        userId = request.user._id
+        userId = request.user.id
         backgroundImage = request.data.get('backgroundImage')
         print("Background Image: ", backgroundImage)
         if backgroundImage is None:
@@ -103,7 +103,7 @@ class UploadBackgroundImage(APIView):
 
 class UploadAvatarImage(APIView):
     def post(self, request):
-        userId = request.user._id
+        userId = request.user.id
         avatarImage = request.data.get('avatarImage')
         print("Avatar Image: ", avatarImage)
         if avatarImage is None:
@@ -123,7 +123,7 @@ class UploadAvatarImage(APIView):
 
 class ChangeChannelName(APIView):
     def post(self, request):
-        userId = request.user._id
+        userId = request.user.id
         channelName = request.data.get('channelName')
         print("Channel Name: ", channelName)
         if channelName is None:

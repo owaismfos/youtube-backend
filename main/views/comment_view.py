@@ -14,6 +14,6 @@ class CommentView(APIView):
         return Response(apiResponse(200, 'comment retrieved successfully', comments), status=200)
     
     def post(self, request, videoId):
-        comment = Comment.commentOnVideo(request.user._id, videoId, request.data.get('comment'))
+        comment = Comment.commentOnVideo(request.user.id, videoId, request.data.get('comment'))
         
         return Response(apiResponse(200, 'comment created successfully', comment), status=200)

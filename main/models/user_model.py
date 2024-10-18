@@ -6,53 +6,27 @@ import jwt
 import os
 
 class User(models.Model):
-    _id = models.UUIDField(
-        primary_key = True,
-        default = uuid.uuid4(),
-        editable = False,
-        )
-    
-    fullname = models.CharField(
-        max_length = 50, 
-        null = False, 
-        blank = False
-        )
-    
-    email = models.CharField(
-        max_length = 100, 
-        blank = False, 
-        unique = True
-        )
-    
-    username = models.CharField(
-        max_length = 100, 
-        blank = False, 
-        unique = True
-        )
-    
-    avatar = models.CharField(max_length=5000)
-    avatar_id = models.CharField(max_length=200)
-
-    password = models.CharField(
-        max_length = 500, 
-        blank = False, 
-        unique = False
-        )
-
-    refreshToken = models.CharField(max_length=500)
-    createdAt = models.DateTimeField(auto_now_add=True)
-    updatedAt = models.DateTimeField(auto_now=True)
+    firstName = models.CharField(db_column='firstName', max_length = 50, null = False, blank = False)
+    lastName = models.CharField(db_column='lastName', max_length = 50, null = False, blank = False)
+    email = models.CharField(db_column='email', max_length = 100, blank = False, unique = True)
+    username = models.CharField(db_column='username', max_length = 100, blank = False, unique = True)
+    avatarUrl = models.CharField(db_column='avatarUrl', max_length=5000)
+    avatarId = models.CharField(db_column='avatarId', max_length=200)
+    password = models.CharField(db_column='password', max_length = 500, blank = False, unique = False)
+    refreshToken = models.CharField(db_column='refreshToken', max_length=500)
+    createdAt = models.DateTimeField(db_column='createdAt', auto_now_add=True)
+    updatedAt = models.DateTimeField(db_column='updatedAt', auto_now=True)
     
     class Meta:
         db_table = 'Users'
 
-    def save(self, *args, **kwargs):
-        print("save method is called")
-        # self._id = self._id.replace('_', '')
-        print("Save user into the database", self._id)
-        print("Print agrs in save method: ", args)
-        print("Kwagrs: ", kwargs)
-        super(User, self).save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     print("save method is called")
+    #     # self.id = self.id.replace('_', '')
+    #     print("Save user into the database", self.id)
+    #     print("Print agrs in save method: ", args)
+    #     print("Kwagrs: ", kwargs)
+    #     super(User, self).save(*args, **kwargs)
         
     @classmethod
     def getUserById(self, id):
@@ -92,7 +66,7 @@ class User(models.Model):
         
     def to_dict(self):
         return {
-            '_id': self._id,
+            'id': self.id,
             'fullname': self.fullname,
             'email': self.email,
             'username': '@' + self.username,
@@ -108,7 +82,7 @@ class User(models.Model):
         print(os.getenv('ACCESS_TOKEN_EXPIRY'))
         tokenExpiry = datetime.utcnow() + timedelta(days=int(os.getenv('ACCESS_TOKEN_EXPIRY')))
         accessPayload = {
-            'id': str(self._id),
+            'id': str(self.id),
             'email': self.email,
             'username': self.username,
             'exp': tokenExpiry,
@@ -121,7 +95,7 @@ class User(models.Model):
     
     def generateRefreshToken(self):
         refreshPayload = {
-            'id': str(self._id),
+            'id': str(self.id),
             'exp': datetime.utcnow() + timedelta(days=int(os.getenv('REFRESH_TOKEN_EXPIRY'))),
             'iat': datetime.utcnow()
         }

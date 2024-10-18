@@ -8,8 +8,8 @@ ist_timezone = pytz.timezone('Asia/Kolkata')
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, db_column="user_id")
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, db_column="video_id")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_column="userId")
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, db_column="videoId")
     comment = models.CharField(max_length=1000)
     createdAt = models.DateTimeField(auto_now_add=True)
     
@@ -21,11 +21,11 @@ class Comment(models.Model):
         return {
             'id': self.id,
             'user': {
-                'userId': self.user._id,
+                'userId': self.user.id,
                 'avatarUrl': self.user.avatar,
                 'username': self.user.username,
             },
-            'videoId': self.video._id,
+            'videoId': self.video.id,
             'comment': self.comment,
             'createdAt': self.createdAt.astimezone(ist_timezone)
         }

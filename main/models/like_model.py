@@ -4,8 +4,8 @@ from .video_model import Video
 
 
 class Like(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, db_column='user_id')
-    video = models.ForeignKey(Video, on_delete=models.CASCADE, db_column='video_id')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_column='userId')
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, db_column='videoId')
     createdAt = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -15,11 +15,11 @@ class Like(models.Model):
         return {
             'id': self.id,
             'user': {
-                'userId': self.user._id,
+                'userId': self.user.id,
                 'avatarUrl': self.user.avatar,
                 'username': '@' + self.user.username,
             },
-            'videoId': self.video._id,
+            'videoId': self.video.id,
             # 'createdAt': self.createdAt.strftime('%Y-%m-%d %H:%M:%S')
         }
 

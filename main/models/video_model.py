@@ -9,62 +9,38 @@ ist_timezone = pytz.timezone('Asia/Kolkata')
 
 
 class Video(models.Model):
-    _id = models.UUIDField(
-        primary_key = True, 
-        default = uuid.uuid4(), 
-        editable = False,
-        )
-    
-    title = models.CharField(max_length=100)
-
-    description = models.TextField()
-
-    video_url = models.CharField(max_length=500)
-
-    video_id = models.CharField(max_length=100)
-
-    thumbnail_url = models.CharField(max_length=500)
-
-    thumbnail_id = models.CharField(max_length=100)
-
-    duration = models.IntegerField()
-    
-    views = models.BigIntegerField(default=0)
-
-    user = models.ForeignKey(
-        User, 
-        on_delete = models.CASCADE, 
-        db_column = "user_id"
-        )
-    
-    channel = models.ForeignKey(
-        Channel, 
-        on_delete = models.CASCADE, 
-        db_column = "channel_id"
-        )
-    
-    createAt = models.DateTimeField(auto_now_add=True)
-    updateAt = models.DateTimeField(auto_now=True)
+    videoTitle = models.CharField(max_length=100, db_column='videoTitle')
+    videDescription = models.TextField(db_column='videDescription')
+    videoUrl = models.CharField(max_length=500, db_column='videoUrl')
+    videoId = models.CharField(max_length=100, db_column='videoId')
+    thumbnailUrl = models.CharField(max_length=500, db_column='thumbnailUrl')
+    thumbnailId = models.CharField(max_length=100, db_column='thumbnailId')
+    duration = models.IntegerField(db_column='duration')
+    views = models.BigIntegerField(default=0, db_column='views')
+    user = models.ForeignKey(User, on_delete = models.CASCADE, db_column = "userId")
+    channel = models.ForeignKey(Channel, on_delete = models.CASCADE, db_column = "channelId")
+    createAt = models.DateTimeField(auto_now_add=True, db_column='createAt')
+    updateAt = models.DateTimeField(auto_now=True, db_column='updateAt')
     
     class Meta:
         db_table = 'Videos'
 
     # def save(self, *args, **kwargs):
     #     print("save method is called")
-    #     video = self.getVideoById(self._id)
+    #     video = self.getVideoById(self.id)
     #     if video is not None:
     #         print("video is found")
     #         atms = 5
     #         atm = 0
-    #         while video._id == self._id and atm < atms:
+    #         while video.id == self.id and atm < atms:
     #             id = uuid.uuid4().hex
     #             print("ID: ", id)
-    #             if id != video._id:
-    #                 self._id = id
+    #             if id != video.id:
+    #                 self.id = id
     #                 break
     #             atm = atm + 1
 
-    #     print("Video user into the database", self._id)
+    #     print("Video user into the database", self.id)
     #     print("Print agrs in save method: ", args)
     #     print("Kwagrs: ", kwargs)
     #     super(Video, self).save(*args, **kwargs)
@@ -127,7 +103,7 @@ class Video(models.Model):
         
     def to_dict(self):
         return {
-            '_id': self._id,
+            'id': self.id,
             'title': self.title,
             'description': self.description,
             'videoUrl': self.video_url,
@@ -135,12 +111,12 @@ class Video(models.Model):
             'duration': self.duration,
             'views': self.views,
             'user' : {
-                'userId': self.user._id,
+                'userId': self.user.id,
                 'username': '@' + self.user.username,
                 'avatar': self.user.avatar,
             },
             'channel' : {
-                'channelId': self.channel._id,
+                'channelId': self.channel.id,
                 'channelName': self.channel.channelName,
                 'channelHandle': self.channel.channelHandle,
                 'channelAvatarUrl': self.channel.channelAvatarUrl,

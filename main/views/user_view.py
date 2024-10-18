@@ -97,7 +97,7 @@ class LoginView(APIView):
 class LogoutView(APIView):
     def post(self, request):
         # print(request.META.get('HTTP_AUTHORIZATION'))
-        user = User.getUserById(request.user._id)
+        user = User.getUserById(request.user.id)
         if user is None:
             return Response(apiError(401, "Invalid Credentials"),
                             status=status.HTTP_401_UNAUTHORIZED)
@@ -205,15 +205,15 @@ class UpdateAvatar(APIView):
 class UserProfile(APIView):
     def get(self, request):
         # print(request.user)
-        user = User.getUserById(request.user._id)
+        user = User.getUserById(request.user.id)
         if user is None:
             return Response(apiError(401, 'User does not exist'), status=status.HTTP_401_UNAUTHORIZED)
         
         response = user.to_dict()
-        if Channel.isChannelExistOfUser(user._id) is True:
-            channel = Channel.getChannelOfUserId(user._id)
+        if Channel.isChannelExistOfUser(user.id) is True:
+            channel = Channel.getChannelOfUserId(user.id)
             response['isChannel'] = True
-            response['channelId'] = channel._id
+            response['channelId'] = channel.id
             response['channelHandle'] = channel.channelHandle
         else:
             response['isChannel'] = False
@@ -223,7 +223,7 @@ class UserProfile(APIView):
 
 class GetLoggedInUserAvatar(APIView):
     def get(self, request):
-        userId = request.user._id
+        userId = request.user.id
         user = User.getUserById(userId)
         if user is None:
             return Response(apiError(401, 'User does not exist'), status=status.HTTP_401_UNAUTHORIZED)

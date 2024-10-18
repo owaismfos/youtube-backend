@@ -13,7 +13,7 @@ from main.utils.api_error import apiError
 class SubscriptionView(APIView):
     def get(self, request, channelId):
         subscribers = Subscription.getSubscriberCount(channelId)
-        isSubscribed = Subscription.isSubscribed(channelId, request.user._id)
+        isSubscribed = Subscription.isSubscribed(channelId, request.user.id)
         data = {
             'isSubscribed': isSubscribed,
             'subscribersCount': subscribers
@@ -23,7 +23,7 @@ class SubscriptionView(APIView):
 
     def post(self, request, channelId):
         # channelId = request.data.get('channelId')
-        subscriberId = request.user._id
+        subscriberId = request.user.id
         
         if channelId is None or subscriberId is None:
             return Response(apiError(400, 'bad request'), status=status.HTTP_400_BAD_REQUEST)
@@ -37,7 +37,7 @@ class SubscriptionView(APIView):
 class UnsubscribeChannel(APIView):
     def post(self, request, channelId):
         # channelId = request.data.get('channelId')
-        subscriberId = request.user._id
+        subscriberId = request.user.id
         
         if channelId is None or subscriberId is None:
             return Response(apiError(400, 'bad request'), status=status.HTTP_400_BAD_REQUEST)
@@ -50,5 +50,5 @@ class UnsubscribeChannel(APIView):
 
 class GetChannelsSubscribedByUser(APIView):
     def get(self, request):
-        subscriptions = Subscription.getSubscriptions(request.user._id)
+        subscriptions = Subscription.getSubscriptions(request.user.id)
         return Response(apiResponse(200, "OK", subscriptions), status=status.HTTP_200_OK)

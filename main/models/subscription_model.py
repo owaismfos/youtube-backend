@@ -5,8 +5,8 @@ from .channel_model import Channel
 
 
 class Subscription(models.Model):
-    subscriber = models.ForeignKey(User, on_delete=models.CASCADE, db_column="subscriber_id",  related_name='subscriber')
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, db_column="channel_id", related_name='channels')
+    subscriber = models.ForeignKey(User, on_delete=models.CASCADE, db_column="subscriberId",  related_name='subscriber')
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, db_column="channelId", related_name='channels')
     createAt = models.DateTimeField(auto_now_add=True)
     updateAt = models.DateTimeField(auto_now=True)
     
@@ -32,7 +32,7 @@ class Subscription(models.Model):
         for subcriber in subscriberObjects:
             user = User.getUserById(subcriber.subscriber_id)
             subcriberDetail = {
-                'id': user._id,
+                'id': user.id,
                 'username': '@' + user.username,
                 'avatar': user.avatar
             }
@@ -41,7 +41,7 @@ class Subscription(models.Model):
         for subscription in subscriptionObjects:
             user = User.getUserById(subscription.channel_id)
             subscriptionDetail = {
-                'id': user._id,
+                'id': user.id,
                 'username': '@' + user.username,
                 'avatar': user.avatar
             }
@@ -102,7 +102,7 @@ class Subscription(models.Model):
         for subscription in subscriptionObjects:
             # user = User.getUserById(subscription.channel_id)
             subscriptionDetail = {
-                'id': subscription.channel._id,
+                'id': subscription.channel.id,
                 'channelName': subscription.channel.channelName,
                 'channelHandle': subscription.channel.channelHandle,
                 'channelAvatarUrl': subscription.channel.channelAvatarUrl,
