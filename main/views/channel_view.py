@@ -33,7 +33,7 @@ class ChannelView(APIView):
                 return Response(apiError(500, 'internal server error for uploading avatar'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             data['channelAvatarUrl'] = avatarResponse.get('url')
             data['channelAvatarId'] = avatarResponse.get('public_id')
-        
+
         channelBackground = request.data.get('channelBackground')
         print("Channel Background Image: ", channelBackground)
         if channelBackground is not None:
@@ -42,7 +42,7 @@ class ChannelView(APIView):
                 return Response(apiError(500, 'internal server error for uploading background image'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             data['channelBackgroundUrl'] = backgroundResponse.get('url')
             data['channelBackgroundId'] = backgroundResponse.get('public_id')
-        
+
         print("Data: ", data)
         channel = Channel.createChannel(data)
         # channel.save()
@@ -51,36 +51,39 @@ class ChannelView(APIView):
 
 class GetChannelDetails(APIView):
     def get(self, request, channelId=None):
-        print("Channel ID: ", channelId)
-        print("User ID: ", request.user.id)
-        if channelId is None:
-            # if Channel.isChannelExistOfUser(request.user.id) is False:
-            #     return Response(apiError(400, "channel not exist with this user"), status=400)
+        try:
+            print("Channel ID: ", channelId)
+            print("User ID: ", request.user.id)
+            if channelId is None:
+                # if Channel.isChannelExistOfUser(request.user.id) is False:
+                #     return Response(apiError(400, "channel not exist with this user"), status=400)
 
-            channel = Channel.getChannelOfUserId(request.user.id)
-            print(channel)
-            if channel is None:
-                return Response(apiError(400, "channel not exist with this user"), status=404)
+                channel = Channel.getChannelOfUserId(request.user.id)
+                print(channel)
+                if channel is None:
+                    return Response(apiError(404, "channel not exist with this user"), status=404)
 
-            channel = channel.to_dict()
-            if (channel['user']['userId'] == request.user.id):
-                channel['currentUser'] = True
+                channel = channel.to_dict()
+                if (channel['user']['userId'] == request.user.id):
+                    channel['currentUser'] = True
+                else:
+                    channel['currentUser'] = False
+                return Response(apiResponse(200, 'channel retrieved successfully', channel), status=200)
+
             else:
-                channel['currentUser'] = False
-            return Response(apiResponse(200, 'channel retrieved successfully', channel), status=200)
+                channel = Channel.getChannelById(channelId)
+                if channel is None:
+                    return Response(apiError(400, "channel not exist"), status=400)
+                channel = channel.to_dict()
+                if (channel['user']['userId'] == request.user.id):
+                    channel['currentUser'] = True
+                else:
+                    channel['currentUser'] = False
+                return Response(apiResponse(200, 'channel retrieved successfully', channel), status=200)
+        except Exception as e:
+            return Response(apiError(500, str(e)), status=500)
 
-        else:
-            channel = Channel.getChannelById(channelId)
-            if channel is None:
-                return Response(apiError(400, "channel not exist"), status=400)
-            channel = channel.to_dict()
-            if (channel['user']['userId'] == request.user.id):
-                channel['currentUser'] = True
-            else:
-                channel['currentUser'] = False
-            return Response(apiResponse(200, 'channel retrieved successfully', channel), status=200)
 
-    
 class UploadBackgroundImage(APIView):
     def post(self, request):
         userId = request.user.id
@@ -103,22 +106,27 @@ class UploadBackgroundImage(APIView):
 
 class UploadAvatarImage(APIView):
     def post(self, request):
-        userId = request.user.id
-        avatarImage = request.data.get('avatarImage')
-        print("Avatar Image: ", avatarImage)
-        if avatarImage is None:
-            return Response(apiError(400, "avatar image not provided"), status=400)
+        try:
+            userId = request.user.id
+            avatarImage = request.data.get('avatarImage')
+            print("Avatar Image: ", avatarImage)
+            if avatarImage is None:
+                return Response(apiError(400, "avatar image not provided"), status=400)
 
-        avatarResponse = uploadOnCloudinry(avatarImage, 'user_avatar')
-        if avatarResponse is None:
-            return Response(apiError(500, 'internal server error for uploading avatar image'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            avatarResponse = uploadOnCloudinry(avatarImage, os.getenv('CHANNEL_AVATAR'))
+            print(avatarResponse)
+            if avatarResponse is None:
+                return Response(apiError(500, 'internal server error for uploading avatar image'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-        channel = Channel.getChannelOfUserId(userId)
-        channel.channelAvatarUrl = avatarResponse.get('url')
-        channel.channelAvatarId = avatarResponse.get('public_id')
-        channel.save()
-        
-        return Response(apiResponse(200, 'avatar image uploaded successfully', channel.channelAvatarUrl), status=200)
+            channel = Channel.getChannelOfUserId(userId)
+            print(channel)
+            channel.channelAvatarUrl = avatarResponse.get('url')
+            channel.channelAvatarId = avatarResponse.get('public_id')
+            channel.save()
+
+            return Response(apiResponse(200, 'avatar image uploaded successfully', channel.channelAvatarUrl), status=200)
+        except Exception as e:
+            return Response(apiError(500, str(e)), status=500)
 
 
 class ChangeChannelName(APIView):
@@ -132,5 +140,5 @@ class ChangeChannelName(APIView):
         channel = Channel.getChannelOfUserId(userId)
         channel.channelName = channelName
         channel.save()
-        
+
         return Response(apiResponse(200, 'channel name changed successfully', channel.channelName), status=200)

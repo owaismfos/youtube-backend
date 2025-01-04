@@ -17,18 +17,19 @@ def uploadOnCloudinry(file, folder_name):
             folder = folder_name,
             resource_type = "auto"
         )
-        return result
+        return result, 'success'
     except Exception as e:
-        return None
-    
-    
+        print(str(e))
+        return None, str(e)
+
+
 def deleteFromCloudinry(public_id):
     try:
         result = cloudinary.api.delete_resources(
-            public_id, 
-            resource_type="image", 
+            public_id,
+            resource_type="image",
             type="upload"
         )
-        return result
+        return result, 'success'
     except Exception as e:
-        return None
+        return None, str(e)
