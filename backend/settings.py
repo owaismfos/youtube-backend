@@ -16,13 +16,14 @@ SECRET_KEY = 'django-insecure-cn^=%n$ft#jtr4-7p!bh6+x2hr=cp-0xxmd=+w&he!06yks2us
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['13.236.92.199']
+ALLOWED_HOSTS = []
 
 
 # Application definition
 
 INSTALLED_APPS = [
     # 'django.contrib.admin',
+    'daphne',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -30,6 +31,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'main',
     'corsheaders',
+    # 'channels'
 ]
 
 DATABASE_ROUTERS = ['backend.routers.ExcludeFromDatabaseRouter']
@@ -46,12 +48,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://example.com",
-    "https://sub.example.com",
     "http://localhost:3000",
-    "http://127.0.0.1:5500",
-    "http://localhost:5174",
-    "*"
+    "http://127.0.0.1:3000"
 ]
 
 
@@ -60,15 +58,24 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
-    
+
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'main.auth.authjwt.JWTAuthentication',
         'main.auth.refresh_token_auth.RefreshTokenAuth',
     ],
-    
+
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ]
+}
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": ['redis://:Mecarreira@127.0.0.1:6379/0'],  # Redis server address
+        },
+    },
 }
 
 ROOT_URLCONF = 'backend.urls'
@@ -89,29 +96,30 @@ ROOT_URLCONF = 'backend.urls'
 #     },
 # ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
+# WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = 'backend.asgi.application'
 
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'socialapp',
-#         'HOST': 'localhost',
-#         'USER': 'root',
-#         'PASSWORD': 'root',
-#         'PORT': '3306'
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'socialapp',
+        'HOST': 'localhost',
+        'USER': 'root',
+        'PASSWORD': 'Root@1234',
+        'PORT': '3306'
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 
 # Password validation

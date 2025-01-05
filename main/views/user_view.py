@@ -235,3 +235,13 @@ class GetLoggedInUserAvatar(APIView):
         if user is None:
             return Response(apiError(401, 'User does not exist'), status=status.HTTP_401_UNAUTHORIZED)
         return Response(apiResponse(200, "OK", user.avatar), status=status.HTTP_200_OK)
+
+
+class UserList(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request):
+        users = User.objects.all()
+        data = []
+        for user in users:
+            data.append(user.to_dict())
+        return Response(apiResponse(200, "OK", data), status=200)
