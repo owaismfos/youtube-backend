@@ -86,6 +86,7 @@ class LoginView(APIView):
         user.save()
 
         data = {
+            'id': user.id,
             'accessToken' : accessToken,
             'refreshToken' : refreshToken,
             'tokenExpiry': tokenExpiry,
@@ -238,9 +239,9 @@ class GetLoggedInUserAvatar(APIView):
 
 
 class UserList(APIView):
-    permission_classes = [AllowAny]
+    # permission_classes = [AllowAny]
     def get(self, request):
-        users = User.objects.all()
+        users = User.objects.exclude(id=request.user.id)
         data = []
         for user in users:
             data.append(user.to_dict())

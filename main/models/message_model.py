@@ -36,4 +36,4 @@ class Messages(models.Model):
 
     class Meta:
         db_table = 'Messages'
-        ordering = ['-insertedAt']
+        # ordering = ['-insertedAt']
