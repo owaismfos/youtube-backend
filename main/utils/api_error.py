@@ -1,5 +1,5 @@
 
-def apiError(code, message="Somthing wrong"):
+def apiError(code, message="Something Wrong"):
     return {
         'status_code': code,
         'message': message,

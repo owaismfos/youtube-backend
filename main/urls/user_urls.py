@@ -11,5 +11,6 @@ urlpatterns = [
     path('update-avatar', UpdateAvatar.as_view()),
     path('user-profile', UserProfile.as_view()),
     path('logged-in-user-avatar', GetLoggedInUserAvatar.as_view()),
-    path('user-list', UserList.as_view())
+    path('user-list', UserList.as_view()),
+    path('user-search', UserSearch.as_view()),
 ]

@@ -5,6 +5,7 @@ from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 
 from django.contrib.auth.hashers import make_password, check_password
+from django.db.models import Sum, Q
 
 from main.models.user_model import User
 from main.models.video_model import Video
@@ -241,8 +242,38 @@ class GetLoggedInUserAvatar(APIView):
 class UserList(APIView):
     # permission_classes = [AllowAny]
     def get(self, request):
-        users = User.objects.exclude(id=request.user.id)
-        data = []
-        for user in users:
-            data.append(user.to_dict())
+        users = (User.objects.exclude(id=request.user.id)
+                 .annotate(total_visit=Sum('messageuserstatus__visitCount'))
+                 .order_by('-total_visit')[:20]
+                 )
+
+        data = [{**user.to_dict(), 'totalVisit': user.total_visit or 0} for user in users]
+        # for user in users:
+            # data.append(user.to_dict())
+        return Response(apiResponse(200, "OK", data), status=200)
+    
+
+class UserSearch(APIView):
+    def get(self, request):
+        query = request.query_params.get('query')
+        print("query: ", query)
+        if query is None:
+            return Response(apiError(400, "Query parameter is required"), status=400)
+
+        query_parts = query.split()
+
+        # If there are two parts, search firstName and lastName
+        if len(query_parts) > 1:
+            users = User.objects.filter(
+                Q(firstName__icontains=query_parts[0]) & 
+                Q(lastName__icontains=query_parts[1])
+            ).exclude(id=request.user.id)
+        else:
+            # If only one part, search in both firstName and lastName
+            users = User.objects.filter(
+                Q(firstName__icontains=query) | 
+                Q(lastName__icontains=query)
+            ).exclude(id=request.user.id)
+        
+        data = [user.to_dict() for user in users]
         return Response(apiResponse(200, "OK", data), status=200)

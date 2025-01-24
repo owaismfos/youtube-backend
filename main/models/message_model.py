@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.utils.timezone import now
 from main.models.user_model import User
 
 import os
@@ -36,4 +36,13 @@ class Messages(models.Model):
 
     class Meta:
         db_table = 'Messages'
+        # ordering = ['-insertedAt']
+
+class MessageUserStatus(models.Model):
+    user = models.ForeignKey(User, db_column='user', on_delete=models.CASCADE)
+    isActive = models.BooleanField(db_column='isActive', null=True, default=False)
+    lastActive = models.DateTimeField(db_column='lastActive', null=True, default=now)
+    visitCount = models.IntegerField(db_column='visitCount', null=True, default=0)
+    class Meta:
+        db_table = 'MessageUserStatus'
         # ordering = ['-insertedAt']

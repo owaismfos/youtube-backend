@@ -24,26 +24,6 @@ class Video(models.Model):
     
     class Meta:
         db_table = 'Videos'
-
-    # def save(self, *args, **kwargs):
-    #     print("save method is called")
-    #     video = self.getVideoById(self.id)
-    #     if video is not None:
-    #         print("video is found")
-    #         atms = 5
-    #         atm = 0
-    #         while video.id == self.id and atm < atms:
-    #             id = uuid.uuid4().hex
-    #             print("ID: ", id)
-    #             if id != video.id:
-    #                 self.id = id
-    #                 break
-    #             atm = atm + 1
-
-    #     print("Video user into the database", self.id)
-    #     print("Print agrs in save method: ", args)
-    #     print("Kwagrs: ", kwargs)
-    #     super(Video, self).save(*args, **kwargs)
         
     @classmethod
     def getVideoById(self, videoId):
@@ -55,16 +35,16 @@ class Video(models.Model):
     @classmethod
     def createVideo(self, data):
         try:
-            video = Video.objects.create(title = data.get('title'),
-                                         description = data.get('description'),
-                                         video_url = data.get('video_url'),
-                                         video_id = data.get('video_id'),
-                                         thumbnail_url = data.get('thumbnail_url'),
-                                         thumbnail_id = data.get('thumbnail_id'),
-                                         duration = data.get('duration'),
-                                         user_id = data.get('userId'),
-                                         channel_id = data.get('channelId')
-                                         )
+            video = Video.objects.create(videoTitle = data.get('title'),
+                                        videDescription = data.get('description'),
+                                        videoUrl = data.get('video_url'),
+                                        videoId = data.get('video_id'),
+                                        thumbnailUrl = data.get('thumbnail_url'),
+                                        thumbnailId = data.get('thumbnail_id'),
+                                        duration = data.get('duration'),
+                                        user_id = data.get('userId'),
+                                        channel_id = data.get('channelId')
+                                    )
             
             video.save()
             return video
@@ -104,16 +84,16 @@ class Video(models.Model):
     def to_dict(self):
         return {
             'id': self.id,
-            'title': self.title,
-            'description': self.description,
-            'videoUrl': self.video_url,
-            'thumbnailUrl': self.thumbnail_url,
+            'title': self.videoTitle,
+            'description': self.videDescription,
+            'videoUrl': self.videoUrl,
+            'thumbnailUrl': self.thumbnailUrl,
             'duration': self.duration,
             'views': self.views,
             'user' : {
                 'userId': self.user.id,
                 'username': '@' + self.user.username,
-                'avatar': self.user.avatar,
+                'avatar': self.user.avatarUrl,
             },
             'channel' : {
                 'channelId': self.channel.id,

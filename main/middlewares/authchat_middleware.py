@@ -39,7 +39,8 @@ class JwtAuthMiddleware(BaseMiddleware):
         if user is None:
             raise str("User not found")
 
+        user.is_authenticated = True
         scope['user'] = user
-        scope['receiverId'] = receiver_id
+        scope['receiverId'] = int(receiver_id)
 
         return await super().__call__(scope, receive, send)

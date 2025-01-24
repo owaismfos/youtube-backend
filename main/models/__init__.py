@@ -11,3 +11,5 @@ from .like_model import Like
 from .channel_model import Channel
 
 from .message_model import Messages
+
+from .message_model import MessageUserStatus
