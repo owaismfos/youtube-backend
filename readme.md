@@ -69,6 +69,9 @@ python manage.py migrate
 ```sh
 python manage.py runserver
 ```
+```sh
+celery -A backend worker --loglever=info
+```
 
 ### 🔹 **Frontend Setup (React)**
 ```sh
