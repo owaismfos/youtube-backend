@@ -10,13 +10,13 @@ def uploadMediaFileFolder(instance, filename):
 
     # Check file type and return corresponding folder
     if file_extension in ['.jpg', '.jpeg', '.png', '.gif']:
-        return f'chat_media/images/{filename}'
+        return f'chatMedia/images/{filename}'
     elif file_extension in ['.mp4', '.avi', '.mov']:
-        return f'chat_media/videos/{filename}'
+        return f'chatMedia/videos/{filename}'
     elif file_extension in ['.mp3', '.wav', '.ogg']:
-        return f'chat_media/audio/{filename}'
+        return f'chatMedia/audio/{filename}'
     else:
-        return f'chat_media/others/{filename}'
+        return f'chatMedia/others/{filename}'
 
 class Messages(models.Model):
     MESSAGE_TYPES = [
@@ -33,7 +33,7 @@ class Messages(models.Model):
     mediaFile = models.FileField(db_column='mediaFile', upload_to=uploadMediaFileFolder, null=True, default=None)
     isRead = models.BooleanField(db_column='isRead', null=True, default=False)
     insertedAt = models.DateTimeField(db_column='insertedAt', auto_now_add=True)
-
+    uploaded = models.BooleanField(db_column='uploaded', null=True, default=False)
     class Meta:
         db_table = 'Messages'
         # ordering = ['-insertedAt']

@@ -28,7 +28,7 @@ class Video(models.Model):
     @classmethod
     def getVideoById(self, videoId):
         try:
-            return Video.objects.get(_id = videoId)
+            return Video.objects.get(id = videoId)
         except Exception as e:
             return None
         

@@ -53,7 +53,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000"
 ]
 
-
+CELERY_IMPORTS = ("main.utils.tasks",)
 
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [

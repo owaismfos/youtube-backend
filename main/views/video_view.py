@@ -166,7 +166,7 @@ class ViewsOfVideo(APIView):
         
         return Response(apiResponse(200, 'get views successfully', video.views), status=status.HTTP_200_OK)
 
-    def post(self, request, videoId):
+    def put(self, request, videoId):
         video = Video.getVideoById(videoId)
         if video is None:
             return Response(apiError(404, 'Video not found'), status=status.HTTP_404_NOT_FOUND)

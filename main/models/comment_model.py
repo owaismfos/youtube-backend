@@ -22,7 +22,7 @@ class Comment(models.Model):
             'id': self.id,
             'user': {
                 'userId': self.user.id,
-                'avatarUrl': self.user.avatar,
+                'avatarUrl': self.user.avatarUrl,
                 'username': self.user.username,
             },
             'videoId': self.video.id,
