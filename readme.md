@@ -1,46 +1,46 @@
 # **Django WebSockets Project**
 
-## 📌 Overview
+## Overview
 This is a **full-stack Django and React application** that implements:
 
-- ✅ **WhatsApp-like chat** with WebSockets.
-- ✅ **YouTube-like video upload & playback** with **FFmpeg compression**.
-- ✅ **Real-time progress updates** using **Django Channels** and **WebSockets**.
+- **WhatsApp-like chat** with WebSockets.
+- **YouTube-like video upload & playback** with **FFmpeg compression**.
+- **Real-time progress updates** using **Django Channels** and **WebSockets**.
 
 ---
 
-## 🚀 Features
+## Features
 ### 🔹 **WhatsApp-Like Chat**
-✅ **Real-time messaging** using WebSockets.
-✅ **One-on-one and group chats**.
-✅ **Message status updates** (*sent, delivered, read*).
-✅ **Online/offline user status**.
+- **Real-time messaging** using WebSockets.
+- **One-on-one and group chats**.
+- **Message status updates** (*sent, delivered, read*).
+- **Online/offline user status**.
 
 ### 🔹 **YouTube-Like Video Upload & Playback**
-✅ **Video uploads** using Django REST API.
-✅ **Real-time upload progress** via WebSockets.
-✅ **FFmpeg compression** for optimized video storage.
-✅ **Video duration retrieval before upload**.
-✅ **Streaming video playback** using React Player.
+- **Video uploads** using Django REST API.
+- **Real-time upload progress** via WebSockets.
+- **FFmpeg compression** for optimized video storage.
+- **Video duration retrieval before upload**.
+- **Streaming video playback** using React Player.
 
 ---
 
 ## 🛠 Tech Stack
-### 🎯 **Backend (Django)**
-- 🐍 **Django** – Web framework.
-- 🔌 **Django Channels** – WebSockets support.
-- ⚙️ **Celery** – Background video processing.
-- 🔴 **Redis** – Message broker for Celery.
-- 🎞️ **FFmpeg** – Video compression.
+### **Backend (Django)**
+-  **Django** – Web framework.
+-  **Django Channels** – WebSockets support.
+-  **Celery** – Background video processing.
+-  **Redis** – Message broker for Celery.
+-  **FFmpeg** – Video compression.
 
-### 🎨 **Frontend (React)**
-- ⚛️ **React** – UI framework.
-- 🎥 **react-player** – Video player.
-- 🔄 **WebSockets API** – Real-time updates.
+### **Frontend (React)**
+- **React** – UI framework.
+- **react-player** – Video player.
+- **WebSockets API** – Real-time updates.
 
 ---
 
-## 📥 Installation & Setup
+## Installation & Setup
 ### 🔹 **Clone the Repository**
 ```sh
 git clone https://github.com/MohammadOwais655/youtube-backend.git
@@ -91,7 +91,7 @@ ws://localhost:8000/ws/chat/?receiverId=${receiverId}&token=${token}
 
 ---
 
-## 🔥 API Endpoints
+## API Endpoints
 ### 🔹 **Authentication**
 ```http
 POST /api/v1/users/create-user
@@ -111,11 +111,11 @@ GET /api/video/all-videos/  # Get uploaded videos
 
 ---
 
-## 🤝 Contributing
-Feel free to **submit issues and pull requests**! 🚀
+## Contributing
+Feel free to **submit issues and pull requests**!
 
 ---
 
-## 📜 License
+## License
 **MIT License**
 
