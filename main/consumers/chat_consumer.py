@@ -46,6 +46,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'message': {'action': 'user_status', 'data': user_status}
             }
         )
+        # await sync_to_async(Messages.objects.filter(sender=self.scope["receiverid"], receiver=self.user.id, isRead=False).update(isRead=True))
         await self.accept()  # Allow the connection if the user is authenticated
 
     async def disconnect(self, close_code):
@@ -66,7 +67,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'message': {'action': 'user_status', 'data': user_status}
             }
         )
-
+        await sync_to_async(Messages.objects.filter(sender=self.scope["receiverid"], receiver=self.user.id, isRead=False).update(isRead=True))
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name

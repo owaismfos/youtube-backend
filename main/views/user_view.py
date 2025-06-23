@@ -4,8 +4,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
 
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import send_mail
+from django.utils.encoding import force_bytes
 from django.contrib.auth.hashers import make_password, check_password
 from django.db.models import Sum, Q
+from django.db import connection
 
 from main.models.user_model import User
 from main.models.video_model import Video
@@ -15,6 +20,8 @@ from main.utils.cloudinary import uploadOnCloudinry, deleteFromCloudinry
 from main.utils.api_response import apiResponse
 from main.utils.api_error import apiError
 from main.auth.authenticate import authenticate
+
+from datetime import datetime
 import jwt
 import os
 
@@ -84,6 +91,7 @@ class LoginView(APIView):
         refreshToken = user.generateRefreshToken()
 
         user.refreshToken = refreshToken
+        user.lastLogin = datetime.now()
         user.save()
 
         data = {
@@ -242,14 +250,29 @@ class GetLoggedInUserAvatar(APIView):
 class UserList(APIView):
     # permission_classes = [AllowAny]
     def get(self, request):
-        users = (User.objects.exclude(id=request.user.id)
-                 .annotate(total_visit=Sum('messageuserstatus__visitCount'))
-                 .order_by('-total_visit')[:20]
-                 )
-
-        data = [{**user.to_dict(), 'totalVisit': user.total_visit or 0} for user in users]
-        # for user in users:
-            # data.append(user.to_dict())
+        userId = request.user.id
+        query = """SELECT 
+                        u.id,
+                        CONCAT(u.firstName, ' ', u.lastName) AS fullname,
+                        u.email,
+                        CONCAT('@', u.username) AS username,
+                        u.avatarUrl,
+                        u.createdAt,
+                        u.updatedAt,
+                        IFNULL(mus.visitCount, 0) AS visitCount,
+                        COUNT(CASE 
+                            WHEN m.receiver = %s AND m.isRead = 0
+                            THEN 0
+                        END) AS unreadMessageCount
+                    FROM Users u
+                    LEFT JOIN MessageUserStatus mus ON mus.user = u.id
+                    LEFT JOIN Messages m ON m.sender = u.id
+                    WHERE u.id != %s
+                    GROUP BY u.id, u.firstName, u.lastName, u.email, u.username, u.avatarUrl, u.createdAt, u.updatedAt, mus.visitCount;"""
+        with connection.cursor() as cursor:
+            cursor.execute(query, [userId, userId])
+            cols = [col[0] for col in cursor.description]
+            data = [dict(zip(cols, row)) for row in cursor.fetchall()]
         return Response(apiResponse(200, "OK", data), status=200)
     
 
@@ -277,3 +300,64 @@ class UserSearch(APIView):
         
         data = [user.to_dict() for user in users]
         return Response(apiResponse(200, "OK", data), status=200)
+    
+
+class PasswordResetRequestView(APIView):
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response(apiError(400, "Email is required"), status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.getUserByEmail(email)
+        if not user:
+            return Response(apiError(404, "User not found"), status=status.HTTP_404_NOT_FOUND)
+        
+        print("usrid: ", user.id)
+        user.last_login = user.lastLogin
+        user.get_email_field_name = lambda: 'email'
+        uid = urlsafe_base64_encode(force_bytes(str(user.id)))
+        pk = urlsafe_base64_decode(uid).decode()
+        print("pk: ", pk, type(pk))
+        print(uid)
+        token = default_token_generator.make_token(user)
+        reset_url = f"http://localhost:8080/reset-password/{uid}/{token}/"
+        print("Reset URL: ", reset_url)
+        send_mail(
+            subject="Reset Your Password",
+            message=f"Click the link to reset your password: {reset_url}",
+            from_email="mohammad.owais@oodles.io",
+            recipient_list=[email],
+        )
+        # Generate a password reset token and send it to the user's email
+        # This part is omitted for brevity
+
+        return Response(apiResponse(200, "Password reset link sent to your email"), status=status.HTTP_200_OK)
+    
+
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, uidb64, token):
+        password = request.data.get("password")
+        print("uidb64: ", uidb64)
+        print("token: ", token)
+        if not password:
+            return Response({"error": "Password is required."}, status=400)
+        
+        try:
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = User.getUserById(uid)
+            user.get_email_field_name = lambda: 'email'
+            user.last_login = user.lastLogin
+
+            if default_token_generator.check_token(user, token):
+                user.password = make_password(password)
+                user.save()
+                return Response({"message": "Password reset successful."})
+            else:
+                return Response({"error": "Invalid or expired token."}, status=400)
+        except Exception as e:
+            print("Error during password reset:", str(e))
+            return Response({"error": "Invalid request."}, status=400)

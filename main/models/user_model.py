@@ -16,6 +16,7 @@ class User(models.Model):
     refreshToken = models.CharField(db_column='refreshToken', max_length=500, null=True, default=None)
     createdAt = models.DateTimeField(db_column='createdAt', auto_now_add=True)
     updatedAt = models.DateTimeField(db_column='updatedAt', auto_now=True)
+    lastLogin = models.DateTimeField(db_column='lastLogin', null=True, default=None)
 
     class Meta:
         db_table = 'Users'

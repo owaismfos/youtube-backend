@@ -3,8 +3,6 @@ from django.utils.timezone import now
 from main.models.user_model import User
 
 import os
-
-
 def uploadMediaFileFolder(instance, filename):
     file_extension = os.path.splitext(filename)[1].lower()
 
