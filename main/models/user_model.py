@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.hashers import make_password
+from django.db.models import Q
 from datetime import datetime, timedelta
 import uuid
 import jwt
@@ -47,6 +48,13 @@ class User(models.Model):
     def getUserByEmail(self, email):
         try:
             return User.objects.get(email=email)
+        except User.DoesNotExist:
+            return None
+    
+    @classmethod
+    def getUserByEmailOrUsername(self, username):
+        try:
+            return User.objects.filter(Q(email=username) | Q(username=username)).first()
         except User.DoesNotExist:
             return None
 

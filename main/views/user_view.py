@@ -253,7 +253,7 @@ class UserList(APIView):
         userId = request.user.id
         query = """SELECT 
                         u.id,
-                        CONCAT(u.firstName, ' ', u.lastName) AS fullname,
+                        CONCAT(u.firstName, ' ', IFNULL(u.lastName, '')) AS fullname,
                         u.email,
                         CONCAT('@', u.username) AS username,
                         u.avatarUrl,
@@ -307,6 +307,7 @@ class PasswordResetRequestView(APIView):
 
     def post(self, request):
         email = request.data.get('email')
+        print(email)
         if not email:
             return Response(apiError(400, "Email is required"), status=status.HTTP_400_BAD_REQUEST)
 
@@ -322,23 +323,27 @@ class PasswordResetRequestView(APIView):
         print("pk: ", pk, type(pk))
         print(uid)
         token = default_token_generator.make_token(user)
-        reset_url = f"http://localhost:8080/reset-password/{uid}/{token}/"
-        print("Reset URL: ", reset_url)
+        resetUrl = f"http://localhost:8080/api/v1/users/password-reset-confirm/{uid}/{token}"
+        print("Reset URL: ", resetUrl)
         send_mail(
             subject="Reset Your Password",
-            message=f"Click the link to reset your password: {reset_url}",
+            message=f"Click the link to reset your password: {resetUrl}",
             from_email="mohammad.owais@oodles.io",
             recipient_list=[email],
         )
         # Generate a password reset token and send it to the user's email
         # This part is omitted for brevity
+        response = {
+            'resetLink':  resetUrl
+        }
 
-        return Response(apiResponse(200, "Password reset link sent to your email"), status=status.HTTP_200_OK)
+        return Response(apiResponse(200, "Password reset link sent to your email", response), status=status.HTTP_200_OK)
     
 
 
 class PasswordResetConfirmView(APIView):
     permission_classes = [AllowAny]
+
     def post(self, request, uidb64, token):
         password = request.data.get("password")
         print("uidb64: ", uidb64)

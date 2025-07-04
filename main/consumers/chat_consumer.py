@@ -1,20 +1,24 @@
 # chat/consumers.py
-import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.forms.models import model_to_dict
-from asgiref.sync import sync_to_async
-from django.db.models import Q
 from django.core.files.base import ContentFile
-from ..models.message_model import Messages
-from datetime import datetime
-from ..models.message_model import MessageUserStatus
 from django.utils.timezone import now
-from django.conf import settings
-import os
-import time
 from django.core.files import File
+from django.db import connection
+from django.conf import settings
+from django.db.models import Q
+
+from asgiref.sync import sync_to_async
+
+from ..models.message_model import Messages
+from ..models.message_model import MessageUserStatus
+
+from datetime import datetime
 import subprocess
 import asyncio
+import json
+import time
+import os
 
 from main.utils.tasks import videoCompression
 
@@ -38,6 +42,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             user_status['lastActive'] = status.lastActive.strftime('%Y-%m-%d %H:%M:%S')
         else:
             user_status = None
+        
+        await sync_to_async(self.update_undread_messages)()
 
         await self.channel_layer.group_send(
             self.group_name,
@@ -156,6 +162,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
                             'message': message_data,  
                         }
                     )
+                    users = await sync_to_async(self.get_user_list)()
+                    if users:
+                        print("User List: ", users)
+                        # user_data = {'data': users, 'action': 'user_list'}
+                        # await self.channel_layer.group_send(
+                        #         self.group_name,
+                        #         {
+                        #             'type': 'chat_message',
+                        #             'message': user_data,  
+                        #         }
+                        #     )
+                        await self.send(text_data=json.dumps({'data': users, 'action': 'user_list'}))
 
             elif action == 'user_status':
                 status = await sync_to_async(self.receiver_status)()
@@ -223,10 +241,47 @@ class ChatConsumer(AsyncWebsocketConsumer):
             print(str(e))
             return None
 
+    def update_undread_messages(self):
+        try:
+            unread_messages = Messages.objects.filter(receiver=self.scope['user'], isRead=False)
+            unread_messages.update(isRead=True)
+        except Exception as e:
+            print(str(e))
+
     def receiver_status(self):
         try:
             status = MessageUserStatus.objects.filter(user=self.scope['receiverId']).first()
             return status
+        except Exception as e:
+            print(str(e))
+            return None
+
+    def get_user_list(self):
+        try:
+            userId = self.scope['user'].id
+            query = """SELECT 
+                            u.id,
+                            CONCAT(u.firstName, ' ', IFNULL(u.lastName, '')) AS fullname,
+                            u.email,
+                            CONCAT('@', u.username) AS username,
+                            u.avatarUrl,
+                            u.createdAt,
+                            u.updatedAt,
+                            IFNULL(mus.visitCount, 0) AS visitCount,
+                            COUNT(CASE 
+                                WHEN m.receiver = %s AND m.isRead = 0
+                                THEN 0
+                            END) AS unreadMessageCount
+                        FROM Users u
+                        LEFT JOIN MessageUserStatus mus ON mus.user = u.id
+                        LEFT JOIN Messages m ON m.sender = u.id
+                        WHERE u.id != %s
+                        GROUP BY u.id, u.firstName, u.lastName, u.email, u.username, u.avatarUrl, u.createdAt, u.updatedAt, mus.visitCount;"""
+            with connection.cursor() as cursor:
+                cursor.execute(query, [userId, userId])
+                cols = [col[0] for col in cursor.description]
+                data = [dict(zip(cols, row)) for row in cursor.fetchall()]
+            return data
         except Exception as e:
             print(str(e))
             return None
