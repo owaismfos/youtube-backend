@@ -41,6 +41,6 @@ class JwtAuthMiddleware(BaseMiddleware):
 
         user.is_authenticated = True
         scope['user'] = user
-        scope['receiverId'] = int(receiver_id)
+        scope['receiverId'] = int(receiver_id) if receiver_id else None
 
         return await super().__call__(scope, receive, send)

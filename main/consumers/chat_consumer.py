@@ -165,15 +165,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     users = await sync_to_async(self.get_user_list)()
                     if users:
                         print("User List: ", users)
-                        # user_data = {'data': users, 'action': 'user_list'}
-                        # await self.channel_layer.group_send(
-                        #         self.group_name,
-                        #         {
-                        #             'type': 'chat_message',
-                        #             'message': user_data,  
-                        #         }
-                        #     )
-                        await self.send(text_data=json.dumps({'data': users, 'action': 'user_list'}))
+                        user_data = {'data': users, 'action': 'user_list'}
+                        await self.channel_layer.group_send(
+                                self.group_name,
+                                {
+                                    'type': 'chat_message',
+                                    'message': user_data,  
+                                }
+                            )
+                        # await self.send(text_data=json.dumps({'data': users, 'action': 'user_list'}))
 
             elif action == 'user_status':
                 status = await sync_to_async(self.receiver_status)()
@@ -258,7 +258,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     def get_user_list(self):
         try:
-            userId = self.scope['user'].id
+            userId = self.scope["receiverId"]
             query = """SELECT 
                             u.id,
                             CONCAT(u.firstName, ' ', IFNULL(u.lastName, '')) AS fullname,
@@ -281,6 +281,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 cursor.execute(query, [userId, userId])
                 cols = [col[0] for col in cursor.description]
                 data = [dict(zip(cols, row)) for row in cursor.fetchall()]
+            for user in data:
+                user['createdAt'] = user['createdAt'].strftime('%Y-%m-%d %H:%M:%S')
+                user['updatedAt'] = user['updatedAt'].strftime('%y-%m-%d %H:%M:%S')
             return data
         except Exception as e:
             print(str(e))
