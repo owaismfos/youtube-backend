@@ -76,9 +76,10 @@ class User(models.Model):
             return None
 
     def to_dict(self):
+        fullname = self.firstName + ' ' + self.lastName if self.lastName != None else self.firstName
         return {
             'id': self.id,
-            'fullname': self.firstName + ' ' + self.lastName if self.lastName != None else self.firstName,
+            'fullname': fullname.strip(),
             'email': self.email,
             'username': '@' + self.username,
             'avatar': self.avatarUrl,
@@ -91,7 +92,7 @@ class User(models.Model):
 
     def generateAccessToken(self):
         print(os.getenv('ACCESS_TOKEN_EXPIRY'))
-        tokenExpiry = datetime.utcnow() + timedelta(days=int(os.getenv('ACCESS_TOKEN_EXPIRY')))
+        tokenExpiry = datetime.now() + timedelta(days=int(os.getenv('ACCESS_TOKEN_EXPIRY')))
         accessPayload = {
             'id': str(self.id),
             'email': self.email,

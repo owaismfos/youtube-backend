@@ -4,12 +4,13 @@ from .user_model import User
 from .channel_model import Channel
 import uuid
 import pytz
+import os
 
 ist_timezone = pytz.timezone('Asia/Kolkata')
 
 
 class Video(models.Model):
-    uniqueId = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    uniqueId = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
     videoTitle = models.CharField(max_length=100, db_column='videoTitle')
     videDescription = models.TextField(db_column='videDescription')
     videoUrl = models.CharField(max_length=500, db_column='videoUrl')
@@ -21,6 +22,9 @@ class Video(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE, db_column = "userId")
     channel = models.ForeignKey(Channel, on_delete = models.CASCADE, db_column = "channelId")
 
+    videoOriginal = models.FileField(upload_to='videos/original/', null=True, blank=True, db_column='videoOriginal')
+    videoHlsPlayList = models.FileField(upload_to='videos/hls/', null=True, blank=True, db_column='videoHlsPlayList')
+    resolutions = models.JSONField(default=list) ### ['1080', '720', '480']
     video480p = models.FileField(upload_to='videos/480p/', null=True, blank=True, db_column='video480p')
     video720p = models.FileField(upload_to='videos/720p/', null=True, blank=True, db_column='video720p')
     video1080p = models.FileField(upload_to='videos/1080p/', null=True, blank=True, db_column='video1080p')
@@ -93,7 +97,7 @@ class Video(models.Model):
             'id': self.id,
             'title': self.videoTitle,
             'description': self.videDescription,
-            'videoUrl': self.videoUrl,
+            'videoUrl': os.getenv('SERVER_DOMAIN') + self.videoHlsPlayList.url,
             'thumbnailUrl': self.thumbnailUrl,
             'duration': self.duration,
             'views': self.views,

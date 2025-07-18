@@ -1,15 +1,21 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework.viewsets import ViewSet
+from rest_framework.decorators import action
 from rest_framework import status
+
+from backend.settings import BASE_DIR
 
 from main.models.user_model import User
 from main.models.video_model import Video
 from main.models.channel_model import Channel
 from main.models.subscription_model import Subscription
+
 from main.utils.cloudinary import uploadOnCloudinry, deleteFromCloudinry
 from main.utils.api_response import apiResponse
 from main.utils.api_error import apiError
+from main.utils.services import getVideoDuration, compress_video_to_hls
 
 import os
 
@@ -29,43 +35,58 @@ class VideoView(APIView):
         try:
             print(request.user)
             video = request.data.get('video')
-            thumbnail = request.data.get('thumbnail')
-
-            print(request.data.get('title'))
-            print(request.data.get('description'))
-            
-            print(video)
-            videoResponse = uploadOnCloudinry(video, os.getenv('VIDEO_FILE'))
-            print("Video Response: ", videoResponse)
-            if videoResponse is None:
-                print("This is video response error")
-                return Response(apiError(500, 'internal server error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-            thumbnailResponse = uploadOnCloudinry(thumbnail, os.getenv('VIDEO_THUMBNAIL'))
-            print("Thumbnail Response: ", thumbnailResponse)
-            if thumbnailResponse is None:
-                print('this is thumbnail response error')
-                deleteFromCloudinry(videoResponse.get('public_id'))
-                return Response(apiError(500, 'internal server error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-            print("Declare the data variables")
             channel = Channel.getChannelOfUserId(request.user.id)
-            data = {
-                'title': request.data.get('title'),
-                'description': request.data.get('description'),
-                'video_url': videoResponse[0].get('url'),
-                'video_id': videoResponse[0].get('public_id'),
-                'thumbnail_url': thumbnailResponse[0].get('url'),
-                'thumbnail_id': thumbnailResponse[0].get('public_id'),
-                'duration': videoResponse[0].get('duration'),
-                'userId': request.user.id,
-                'channelId': channel.id
-            }
+            videoObject = Video.objects.create(
+                user_id = request.user.id,
+                channel_id = channel.id,
+                videoOriginal = video,
+                duration = 0
+            )
             
-            videoObject = Video.createVideo(data)
-            # print(videoObject)
-            if videoObject is None:
-                return Response(apiError(500, 'internal server error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            path = str(videoObject.videoOriginal.path)
+            print(path)
+            duration = getVideoDuration(path)
+            videoObject.duration = int(duration)
+            videoObject.save()
+            compress_video_to_hls(videoObject.uniqueId)
+
+            # thumbnail = request.data.get('thumbnail')
+
+            # print(request.data.get('title'))
+            # print(request.data.get('description'))
+            
+            # print(video)
+            # videoResponse = uploadOnCloudinry(video, os.getenv('VIDEO_FILE'))
+            # print("Video Response: ", videoResponse)
+            # if videoResponse is None:
+            #     print("This is video response error")
+            #     return Response(apiError(500, 'internal server error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # thumbnailResponse = uploadOnCloudinry(thumbnail, os.getenv('VIDEO_THUMBNAIL'))
+            # print("Thumbnail Response: ", thumbnailResponse)
+            # if thumbnailResponse is None:
+            #     print('this is thumbnail response error')
+            #     deleteFromCloudinry(videoResponse.get('public_id'))
+            #     return Response(apiError(500, 'internal server error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            # print("Declare the data variables")
+            # channel = Channel.getChannelOfUserId(request.user.id)
+            # data = {
+            #     'title': request.data.get('title'),
+            #     'description': request.data.get('description'),
+            #     'video_url': videoResponse[0].get('url'),
+            #     'video_id': videoResponse[0].get('public_id'),
+            #     'thumbnail_url': thumbnailResponse[0].get('url'),
+            #     'thumbnail_id': thumbnailResponse[0].get('public_id'),
+            #     'duration': videoResponse[0].get('duration'),
+            #     'userId': request.user.id,
+            #     'channelId': channel.id
+            # }
+            
+            # videoObject = Video.createVideo(data)
+            # # print(videoObject)
+            # if videoObject is None:
+            #     return Response(apiError(500, 'internal server error'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             return Response(apiResponse(201, 
                                         "video upload successfully", 

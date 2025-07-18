@@ -1,9 +1,15 @@
-from backend.settings import BASE_DIR
+from backend.settings import BASE_DIR, MEDIA_ROOT
 from threading import Thread
+
+from main.models.video_model import Video
+
+# from moviepy import VideoFileClip
+
 import subprocess
 import json
 import sys
 import re
+import os
 
 def getVideoResolution(path):
     cmd = [
@@ -20,6 +26,21 @@ def getVideoResolution(path):
     height = info['streams'][0]['height']
     return (width, height)
 
+def getVideoDuration(path):
+    probe = subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0",
+         "-show_entries", "format=duration", "-of", "default=noprint_wrappers=1:nokey=1",
+        path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    )
+    try:
+        total_duration = float(probe.stdout.strip())
+        return total_duration
+    except:
+        print("[ERROR] Couldn't get video duration")
+        return 0
 
 def enhanceVideoQuality(input_file, output_file):
     # First, get video duration using ffprobe
@@ -125,7 +146,7 @@ def compressVideo480(path, output):
     subprocess.run(cmd)
 
 
-def compressUploadVideo(path, uudi):
+def compressUploadVideo(path, uuid):
     width, height = getVideoResolution(path)
 
     if width >= 1080:
@@ -139,3 +160,53 @@ def compressUploadVideo(path, uudi):
     if width >= 480:
         output480 = str(BASE_DIR) + f"/media/videos/480/{uuid}480.mp4"
         Thread(target=compressVideo480, args=(path, output480)).start()
+
+
+
+
+def compress_video_to_hls(video_id):
+    video = Video.objects.get(uniqueId=video_id)
+    input_file = video.videoOriginal.path
+    output_dir = os.path.join(MEDIA_ROOT, f"hls/{video_id}")
+    os.makedirs(output_dir, exist_ok=True)
+
+    output_master = os.path.join(output_dir, "master.m3u8")
+
+    cmd = [
+        "ffmpeg", "-i", input_file,
+        "-preset", "veryfast", "-g", "48", "-sc_threshold", "0",
+        "-map", "0:v", "-map", "0:a",
+        "-s:v:0", "1920x1080", "-b:v:0", "5000k",
+        "-s:v:1", "1280x720",  "-b:v:1", "3000k",
+        "-s:v:2", "854x480",   "-b:v:2", "1500k",
+        "-s:v:3", "640x360",   "-b:v:3", "800k",
+        "-var_stream_map", "v:0,a:0 v:1,a:0 v:2,a:0 v:3,a:0",
+        "-hls_time", "6", "-hls_list_size", "0", "-f", "hls",
+        "-master_pl_name", "master.m3u8",
+        "-hls_segment_filename", os.path.join(output_dir, "v%v/segment_%03d.ts"),
+        os.path.join(output_dir, "v%v/stream.m3u8")
+    ]
+
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        universal_newlines=True
+    )
+
+    # Progress parsing in separate thread
+    # def track_progress():
+    for line in process.stdout:
+        print("[FFMPEG]", line.strip())
+        if "frame=" in line:
+            # Estimate progress roughly using frame count (optional)
+            print("[PROGRESS]", line.strip())
+            # Optional: update video.progress = X and save()
+
+    # Thread(target=track_progress).start()
+    process.wait()
+
+    # Save output in DB
+    video.videoHlsPlayList.name = f"hls/{video_id}/master.m3u8"
+    video.resolutions = ["1080p", "720p", "480p", "360p"]
+    video.save()
