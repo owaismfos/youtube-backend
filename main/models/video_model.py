@@ -20,7 +20,7 @@ class Video(models.Model):
     duration = models.IntegerField(db_column='duration')
     views = models.BigIntegerField(default=0, db_column='views')
     user = models.ForeignKey(User, on_delete = models.CASCADE, db_column = "userId")
-    channel = models.ForeignKey(Channel, on_delete = models.CASCADE, db_column = "channelId")
+    channel = models.ForeignKey(Channel, on_delete = models.CASCADE, db_column = "channelId", related_name='videos')
 
     videoOriginal = models.FileField(upload_to='videos/original/', null=True, blank=True, db_column='videoOriginal')
     videoHlsPlayList = models.FileField(upload_to='videos/hls/', null=True, blank=True, db_column='videoHlsPlayList')
@@ -97,7 +97,7 @@ class Video(models.Model):
             'id': self.id,
             'title': self.videoTitle,
             'description': self.videDescription,
-            'videoUrl': os.getenv('SERVER_DOMAIN') + self.videoHlsPlayList.url,
+            'videoUrl': self.videoUrl, ##os.getenv('SERVER_DOMAIN') + self.videoHlsPlayList.url,
             'thumbnailUrl': self.thumbnailUrl,
             'duration': self.duration,
             'views': self.views,

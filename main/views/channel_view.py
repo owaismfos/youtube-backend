@@ -4,6 +4,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework import status
 
 from main.models.channel_model import Channel
+from main.models.subscription_model import Subscription
 
 from main.utils.api_response import apiResponse
 from main.utils.api_error import apiError
@@ -63,22 +64,38 @@ class GetChannelDetails(APIView):
                 if channel is None:
                     return Response(apiError(404, "channel not exist with this user"), status=404)
 
+                totalViews = channel.getTotalViews()
+                totalSubscribers = channel.getTotalSubscribers()
+                isSubscribed = Subscription.isSubscribed(channel.id, request.user.id)
                 channel = channel.to_dict()
                 if (channel['user']['userId'] == request.user.id):
                     channel['currentUser'] = True
                 else:
                     channel['currentUser'] = False
+                channel['totalViews'] = totalViews
+                channel['totalSubscribers'] = totalSubscribers
+                channel['isSubscribed'] = isSubscribed
+                print("Channel: ", channel)
                 return Response(apiResponse(200, 'channel retrieved successfully', channel), status=200)
 
             else:
                 channel = Channel.getChannelById(channelId)
                 if channel is None:
                     return Response(apiError(400, "channel not exist"), status=400)
+                
+                totalViews = channel.getTotalViews()
+                totalSubscribers = channel.getTotalSubscribers()
+                isSubscribed = Subscription.isSubscribed(channelId, request.user.id)
+                print("Total Subscribers: ", totalSubscribers)
                 channel = channel.to_dict()
                 if (channel['user']['userId'] == request.user.id):
                     channel['currentUser'] = True
                 else:
                     channel['currentUser'] = False
+                channel['totalViews'] = totalViews
+                channel['totalSubscribers'] = totalSubscribers
+                channel['isSubscribed'] = isSubscribed
+                print("Channel: ", channel)
                 return Response(apiResponse(200, 'channel retrieved successfully', channel), status=200)
         except Exception as e:
             return Response(apiError(500, str(e)), status=500)

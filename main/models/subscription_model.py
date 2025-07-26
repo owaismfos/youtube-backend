@@ -6,7 +6,7 @@ from .channel_model import Channel
 
 class Subscription(models.Model):
     subscriber = models.ForeignKey(User, on_delete=models.CASCADE, db_column="subscriberId",  related_name='subscriber')
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, db_column="channelId", related_name='channels')
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE, db_column="channelId", related_name='subscribers')
     createAt = models.DateTimeField(auto_now_add=True)
     updateAt = models.DateTimeField(auto_now=True)
     

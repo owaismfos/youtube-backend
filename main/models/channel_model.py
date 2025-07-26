@@ -1,5 +1,5 @@
 from django.db import models
-
+# from django.db.models import Sum
 from main.models.user_model import User
 
 import uuid
@@ -97,3 +97,9 @@ class Channel(models.Model):
             return Channel.objects.get(id = channelId)
         except Exception as e:
             return None
+        
+    def getTotalViews(self):
+        return self.videos.aggregate(models.Sum('views'))['views__sum'] or 0
+    
+    def getTotalSubscribers(self):
+        return self.subscribers.count()
