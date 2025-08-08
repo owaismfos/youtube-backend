@@ -24,11 +24,14 @@ class Video(models.Model):
 
     videoOriginal = models.FileField(upload_to='videos/original/', null=True, blank=True, db_column='videoOriginal')
     videoHlsPlayList = models.FileField(upload_to='videos/hls/', null=True, blank=True, db_column='videoHlsPlayList')
-    resolutions = models.JSONField(default=list) ### ['1080', '720', '480']
+    resolutions = models.JSONField(db_column='resolutions', default=list) ### ['1080', '720', '480']
     video480p = models.FileField(upload_to='videos/480p/', null=True, blank=True, db_column='video480p')
     video720p = models.FileField(upload_to='videos/720p/', null=True, blank=True, db_column='video720p')
     video1080p = models.FileField(upload_to='videos/1080p/', null=True, blank=True, db_column='video1080p')
     uploadCompleted = models.BooleanField(db_column='uploadCompleted', default=False)
+
+    isPublic = models.BooleanField(db_column='isPublic', default=True)
+    tags = models.JSONField(db_column='tags', default=list)
 
     createAt = models.DateTimeField(auto_now_add=True, db_column='createAt')
     updateAt = models.DateTimeField(auto_now=True, db_column='updateAt')

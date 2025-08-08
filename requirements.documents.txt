@@ -1,0 +1,130 @@
+Recommended tech stack (example)
+
+Backend: Django + Django REST Framework (DRF) for APIs
+
+Realtime: Django Channels (WebSockets) for upload progress, live chat, notifications
+
+Task queue: Celery + Redis (or RabbitMQ) for transcoding and async jobs
+
+Database: PostgreSQL
+
+Object storage: Amazon S3 (or MinIO/GCS) for raw uploads, variants, thumbnails, captions
+
+Transcoding: FFmpeg (run inside worker containers)
+
+Frontend: React (Vite or CRA) + video.js / hls.js for HLS playback
+
+Search / recommendations: PostgreSQL full-text or Elasticsearch (later)
+
+CDN: CloudFront / Cloudflare for HLS & segment caching
+
+Containerization / Deployment: Docker Compose for local; Kubernetes or AWS ECS for production
+
+Monitoring: Sentry, Prometheus/Grafana, ELK stack (optional)
+
+-------------------------------------------------------------------------------------------------
+
+Core features (high-level)
+
+User accounts & authentication — 
+    1. sign up -- done
+    2. login -- done
+    3. login with google accounts 
+    3. profile
+    4. user preferences
+
+Channels / creators — each user can create a channel with branding
+
+Video upload — client-side chunked or multipart uploads, preview, metadata form
+
+Transcoding & packaging — generate multiple resolutions and HLS/DASH packaging
+
+Playback — adaptive streaming (HLS), player UI (quality selector, captions)
+
+Thumbnails & posters — auto-generated + custom upload
+
+Video metadata & editing — title, description, tags, category, visibility
+
+Comments & replies — threaded comments, moderation
+
+Likes / Dislikes (or Like only) and view counting
+
+Subscriptions & feeds — subscribe to channels, subscription feed
+
+Search & discovery — keyword search, trending, recommended
+
+Watch history & resume — last watched position, history lists
+
+Notifications — push or in-app notifications for new uploads
+
+Analytics — basic watch stats for creators (views, watch time)
+
+Moderation & content policies — reporting, takedowns, automated scanning
+
+Optional advanced: live streaming, ads/monetization, captions/ASR, recommendations ML
+
+---------------------------------------------------------------------------------------------------
+
+High-level architecture & data flow
+
+Frontend (React)
+
+Upload form handles file selection, splits into parts (if using chunking), requests presigned upload URLs from backend, uploads parts directly to S3, then calls backend to finalize.
+
+Player requests playback URL (signed m3u8 or CDN URL) and plays via video.js/hls.js.
+
+WebSockets show upload/transcoding progress in real time.
+
+Backend API (Django / DRF)
+
+Stores metadata and creates a Video record in DB.
+
+Issues presigned S3 URLs for direct upload or accepts server-side streaming.
+
+Enqueues a transcode job to Celery once upload is complete.
+
+Worker / Transcoder (Celery)
+
+Downloads uploaded video (or reads from S3), uses FFmpeg to transcode into multiple renditions and HLS segments, generates thumbnails and /vtt captions (if available).
+
+Uploads generated outputs back to S3 in a structured key format (/videos/{video_id}/hls/...).
+
+Updates DB with VideoVariant entries and final status.
+
+CDN (CloudFront)
+
+Serve HLS master playlist & segments with caching and low latency.
+
+Real-time updates
+
+Workers push progress to a Redis pub/sub or Channels group. Backend relays to frontend WebSocket clients.
+
+------------------------------------------------------------------------------------------------------------------------
+
+API endpoints (suggested) — basic set
+
+POST /api/auth/register — register
+
+POST /api/auth/login — login (JWT or session)
+
+GET /api/channels/:id — get channel
+
+POST /api/videos/init — create DB record + return presigned upload URL or multipart config
+
+POST /api/videos/:id/complete — signal upload complete (backend enqueues transcode)
+
+GET /api/videos/:id — metadata + playback URLs
+
+GET /api/videos/:id/playlist.m3u8 — signed/redirect to CDN
+
+POST /api/videos/:id/comments — add comment
+
+POST /api/videos/:id/like — like
+
+POST /api/subscribe — subscribe
+
+GET /api/search?q=... — search
+
+WebSocket endpoints for real-time events: /ws/uploads/ and /ws/notifications/
+
+-------------------------------------------------------------------------------------------------
