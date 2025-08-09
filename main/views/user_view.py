@@ -12,6 +12,9 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.db.models import Sum, Q
 from django.db import connection
 
+from google.oauth2 import id_token
+from google.auth.transport import requests as grequests
+
 from main.models.user_model import User
 from main.models.video_model import Video
 from main.models.subscription_model import Subscription
@@ -22,6 +25,7 @@ from main.utils.api_error import apiError
 from main.auth.authenticate import authenticate
 
 from datetime import datetime
+import requests
 import jwt
 import os
 
@@ -107,6 +111,71 @@ class LoginView(APIView):
                                     "Logged in successfully",
                                     data),
                         status = status.HTTP_200_OK)
+    
+class GoogleLoginView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        try:
+            token = request.data.get('idToken')
+            print(token)
+            if not id_token:
+                raise Exception("Google token not found")
+            
+            # idinfo = id_token.verify_oauth2_token(token, grequests.Request(), os.getenv("GOOGLE_CLIENT_ID"))
+            # print('idingo: ', idinfo)
+
+            userinfo_response = requests.get(
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+
+            if userinfo_response.status_code != 200:
+                raise Exception("Invalid access token")
+            
+            userinfo = userinfo_response.json()
+            print(userinfo)
+            email = userinfo.get('email')
+            username = email.split('@')[0]
+
+            user, _created = User.objects.get_or_create(email=email) ### username=username, password=token)
+            print("created ", _created)
+
+            if user is None:
+                return Response(apiError(401, "Invalid Credentials"),
+                                status=status.HTTP_401_UNAUTHORIZED)
+            
+            if _created:
+                user.firstName = userinfo.get('given_name')
+                user.lastName = userinfo.get('family_name')
+                user.username = email.split('@')[0]
+            
+            user.avatarUrl = userinfo.get('picture')
+            user.password = token
+
+            accessToken, tokenExpiry = user.generateAccessToken()
+            refreshToken = user.generateRefreshToken()
+
+            user.refreshToken = refreshToken
+            user.lastLogin = datetime.now()
+            user.save()
+
+            data = {
+                'id': user.id,
+                'accessToken' : accessToken,
+                'refreshToken' : refreshToken,
+                'tokenExpiry': tokenExpiry,
+                'user' : user.username,
+                'userAvatar' : user.avatarUrl
+            }
+
+            return Response(apiResponse(200,
+                                        "Logged in successfully",
+                                        data),
+                            status = status.HTTP_200_OK)
+        except Exception as e:
+            return Response(apiError(400, str(e)), status=400)
+
 
 class LogoutView(APIView):
     def post(self, request):

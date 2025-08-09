@@ -27,9 +27,9 @@ Monitoring: Sentry, Prometheus/Grafana, ELK stack (optional)
 Core features (high-level)
 
 User accounts & authentication — 
-    1. sign up -- done
-    2. login -- done
-    3. login with google accounts 
+    1. sign up -- Done
+    2. login -- Done
+    3. login with google accounts -- Done
     3. profile
     4. user preferences
 
