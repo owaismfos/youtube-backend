@@ -44,7 +44,7 @@ class Channel(models.Model):
         db_column = 'channelBackgroundId',
         null = True
     )
-
+    tags = models.JSONField(db_column='tags', default=list)
     user = models.OneToOneField(User, on_delete=models.CASCADE, db_column='userId')
     createAt = models.DateTimeField(auto_now_add=True, db_column='createAt')
     updateAt = models.DateTimeField(auto_now=True, db_column='updateAt')
@@ -60,6 +60,7 @@ class Channel(models.Model):
             'channelDescription': self.channelDescription,
             'channelAvatarUrl': self.channelAvatarUrl,
             'channelBackgroundUrl': self.channelBackgroundUrl,
+            'tags': self.tags,
             'user': {
                 'userId': self.user.id,
                 'username': self.user.username

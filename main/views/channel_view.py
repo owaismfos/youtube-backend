@@ -14,43 +14,48 @@ import os
 
 class ChannelView(APIView):
     def post(self, request):
-        print(request.data)
-        if Channel.isChannelExistOfUser(request.user.id) is True:
-            return Response(apiError(400, "channel exist with this user"), status=400)
-        data = {
-            'userId' : request.user.id,
-            'channelName' : request.data.get('channelName'),
-            'channelDescription' : request.data.get('channelDescription'),
-            'channelAvatarUrl' : None,
-            'channelAvatarId' : None,
-            'channelBackgroundUrl' : None,
-            'channelBackgroundId' : None
-        }
-        channelAvatar = request.data.get('channelAvatar')
-        print("Channel Avatar: ", type(channelAvatar))
-        if channelAvatar is not None:
-            avatarResponse = uploadOnCloudinry(channelAvatar, os.getenv('CHANNEL_AVATAR'))
-            if avatarResponse is None:
-                return Response(apiError(500, 'internal server error for uploading avatar'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            data['channelAvatarUrl'] = avatarResponse.get('url')
-            data['channelAvatarId'] = avatarResponse.get('public_id')
+        try:
+            print(request.data)
+            if Channel.isChannelExistOfUser(request.user.id) is True:
+                return Response(apiError(400, "channel exist with this user"), status=400)
+            data = {
+                'userId' : request.user.id,
+                'channelName' : request.data.get('channelName'),
+                'channelDescription' : request.data.get('channelDescription'),
+                'channelAvatarUrl' : None,
+                'channelAvatarId' : None,
+                'channelBackgroundUrl' : None,
+                'channelBackgroundId' : None
+            }
+            channelAvatar = request.data.get('channelAvatar')
+            print("Channel Avatar: ", type(channelAvatar))
+            if channelAvatar is not None:
+                avatarResponse = uploadOnCloudinry(channelAvatar, os.getenv('CHANNEL_AVATAR'))
+                if avatarResponse is None:
+                    return Response(apiError(500, 'internal server error for uploading avatar'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                print(avatarResponse)
+                data['channelAvatarUrl'] = avatarResponse[0].get('url')
+                data['channelAvatarId'] = avatarResponse[0].get('public_id')
 
-        channelBackground = request.data.get('channelBackground')
-        print("Channel Background Image: ", channelBackground)
-        if channelBackground is not None:
-            backgroundResponse = uploadOnCloudinry(channelBackground, os.getenv('CHANNEL_BACKGROUND'))
-            if backgroundResponse is None:
-                return Response(apiError(500, 'internal server error for uploading background image'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            data['channelBackgroundUrl'] = backgroundResponse.get('url')
-            data['channelBackgroundId'] = backgroundResponse.get('public_id')
+            channelBackground = request.data.get('channelBackground')
+            print("Channel Background Image: ", channelBackground)
+            if channelBackground is not None:
+                backgroundResponse = uploadOnCloudinry(channelBackground, os.getenv('CHANNEL_BACKGROUND'))
+                if backgroundResponse is None:
+                    return Response(apiError(500, 'internal server error for uploading background image'), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                data['channelBackgroundUrl'] = backgroundResponse[0].get('url')
+                data['channelBackgroundId'] = backgroundResponse[0].get('public_id')
 
-        print("Data: ", data)
-        channel = Channel.createChannel(data)
-        # channel.save()
-        return Response(apiResponse(200, 'channel created successfully', channel), status=200)
+            print("Data: ", data)
+            channel = Channel.createChannel(data)
+            # channel.save()
+            return Response(apiResponse(200, 'channel created successfully', channel), status=200)
+        except Exception as e:
+            raise e
 
 
 class GetChannelDetails(APIView):
+    permission_classes = [AllowAny]
     def get(self, request, channelId=None):
         try:
             print("Channel ID: ", channelId)
@@ -72,6 +77,7 @@ class GetChannelDetails(APIView):
                     channel['currentUser'] = True
                 else:
                     channel['currentUser'] = False
+                    channel.pop('tags', None)
                 channel['totalViews'] = totalViews
                 channel['totalSubscribers'] = totalSubscribers
                 channel['isSubscribed'] = isSubscribed
@@ -92,6 +98,7 @@ class GetChannelDetails(APIView):
                     channel['currentUser'] = True
                 else:
                     channel['currentUser'] = False
+                    channel.pop('tags', None)
                 channel['totalViews'] = totalViews
                 channel['totalSubscribers'] = totalSubscribers
                 channel['isSubscribed'] = isSubscribed
@@ -150,12 +157,20 @@ class ChangeChannelName(APIView):
     def post(self, request):
         userId = request.user.id
         channelName = request.data.get('channelName')
+        tags = request.data.get('tags')
+        print('tags: ', tags)
+        print(type(tags))
         print("Channel Name: ", channelName)
         if channelName is None:
             return Response(apiError(400, "channel name not provided"), status=400)
 
         channel = Channel.getChannelOfUserId(userId)
         channel.channelName = channelName
+        channel.tags = [tag.strip() for tag in tags.split(',')]
         channel.save()
+        data = {
+            'channelName': channel.channelName,
+            'tags': channel.tags
+        }
 
-        return Response(apiResponse(200, 'channel name changed successfully', channel.channelName), status=200)
+        return Response(apiResponse(200, 'channel name changed successfully', data), status=200)

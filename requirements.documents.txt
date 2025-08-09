@@ -33,7 +33,9 @@ User accounts & authentication —
     3. profile
     4. user preferences
 
-Channels / creators — each user can create a channel with branding
+Channels / creators — 
+    1. create channel -- Done
+    2. Update channel data -- Done
 
 Video upload — client-side chunked or multipart uploads, preview, metadata form
 

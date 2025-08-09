@@ -165,10 +165,15 @@ class VideoView(APIView):
     
 
 class GetVideosOfChannel(APIView):
+    permission_classes = [AllowAny]
     def get(self, request, channelId):
-        print("Channel ID: ", channelId)
-        videoList = Video.getAllVideosOfChannel(channelId)
-        return Response(apiResponse(200, "OK", videoList), status=200)
+        try:
+            print("Channel ID: ", channelId)
+            videoList = Video.getAllVideosOfChannel(channelId)
+            return Response(apiResponse(200, "OK", videoList), status=200)
+        except Exception as e:
+            print(str(e))
+            raise e
     
 class AllVideosView(APIView):
     permission_classes = (AllowAny,)
