@@ -30,16 +30,20 @@ class Messages(models.Model):
     content = models.TextField(db_column='content',null=True, default=None)
     mediaFile = models.FileField(db_column='mediaFile', upload_to=uploadMediaFileFolder, null=True, default=None)
     isRead = models.BooleanField(db_column='isRead', null=True, default=False)
-    insertedAt = models.DateTimeField(db_column='insertedAt', auto_now_add=True)
+    insertedAt = models.BigIntegerField(db_column='insertedAt', default=int(now().timestamp()))
     uploaded = models.BooleanField(db_column='uploaded', null=True, default=False)
     class Meta:
         db_table = 'Messages'
+        indexes = [
+            models.Index(fields=['sender', 'receiver']),
+            models.Index(fields=['insertedAt']),
+        ]
         # ordering = ['-insertedAt']
 
 class MessageUserStatus(models.Model):
     user = models.ForeignKey(User, db_column='user', on_delete=models.CASCADE)
     isActive = models.BooleanField(db_column='isActive', null=True, default=False)
-    lastActive = models.DateTimeField(db_column='lastActive', null=True, default=now)
+    lastActive = models.BigIntegerField(db_column='lastActive', null=True, default=int(now().timestamp()))
     visitCount = models.IntegerField(db_column='visitCount', null=True, default=0)
     class Meta:
         db_table = 'MessageUserStatus'

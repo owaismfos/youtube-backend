@@ -178,12 +178,15 @@ class GetVideosOfChannel(APIView):
 class AllVideosView(APIView):
     permission_classes = (AllowAny,)
     def get(self, request):
-        videos = Video.getAllVideos()
-        if videos is None:
-            return Response(apiError(404, 'Videos not found'), status=status.HTTP_404_NOT_FOUND)
-        
-        return Response(apiResponse(200, 'get videos successfully', videos), status=status.HTTP_200_OK)
-
+        try:
+            videos = Video.getAllVideos()
+            if videos is None:
+                return Response(apiError(404, 'Videos not found'), status=status.HTTP_404_NOT_FOUND)
+            
+            return Response(apiResponse(200, 'get videos successfully', videos), status=status.HTTP_200_OK)
+        except Exception as e:
+            print(str(e))
+            raise e
 class ViewsOfVideo(APIView):
     def get(self, request, videoId):
         video = Video.getVideoById(videoId)

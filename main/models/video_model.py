@@ -10,15 +10,30 @@ ist_timezone = pytz.timezone('Asia/Kolkata')
 
 
 class Video(models.Model):
+    PRIVACY_CHOICES = {
+        'public': 'Public',
+        'private': 'Private',
+        'unlisted': 'Unlisted',
+    }
+
+    STATUS_CHOICES = {
+        'uploaded': 'Uploaded',
+        'processing': 'Processing',
+        'published': 'Published',
+    }
+
     uniqueId = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
     videoTitle = models.CharField(max_length=100, db_column='videoTitle')
     videDescription = models.TextField(db_column='videDescription')
+
     videoUrl = models.CharField(max_length=500, db_column='videoUrl')
     videoId = models.CharField(max_length=100, db_column='videoId')
     thumbnailUrl = models.CharField(max_length=500, db_column='thumbnailUrl')
     thumbnailId = models.CharField(max_length=100, db_column='thumbnailId')
+
     duration = models.IntegerField(db_column='duration')
     views = models.BigIntegerField(default=0, db_column='views')
+    
     user = models.ForeignKey(User, on_delete = models.CASCADE, db_column = "userId")
     channel = models.ForeignKey(Channel, on_delete = models.CASCADE, db_column = "channelId", related_name='videos')
 
@@ -32,6 +47,9 @@ class Video(models.Model):
 
     isPublic = models.BooleanField(db_column='isPublic', default=True)
     tags = models.JSONField(db_column='tags', default=list)
+    status = models.CharField(db_column='status', max_length=20, choices=STATUS_CHOICES, default='uploading')
+    privacy = models.CharField(db_column='privacy', max_length=20, choices=PRIVACY_CHOICES, default='public')
+    size = models.BigIntegerField(db_column='size', default=0)
 
     createAt = models.DateTimeField(auto_now_add=True, db_column='createAt')
     updateAt = models.DateTimeField(auto_now=True, db_column='updateAt')
