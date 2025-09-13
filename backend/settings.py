@@ -17,7 +17,10 @@ SECRET_KEY = 'django-insecure-cn^=%n$ft#jtr4-7p!bh6+x2hr=cp-0xxmd=+w&he!06yks2us
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "api.streamtalk.mfos.store",
+    "16.171.135.6",
+    ]
 
 
 # Application definition
